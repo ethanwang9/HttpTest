@@ -1,0 +1,10 @@
+[
+    {
+        "version": "1.0.0",
+        "hash": {
+            "server": "3329C449DB724EE1B5E838EA50D5DFC5",
+            "client": "04140752389C45839481B65A354F5CB2"
+        },
+        "log": "<ul><li>1.0.0</li><ul><li>更新内容:</li><ol><li>测试更新内容</li></ol></ul><ul><li>修复内容:</li><ol><li>测试修复内容</li></ol></ul><ul><li>更新时间:2024-03-10 12:59:29</li></ul></ul>"
+    }
+]

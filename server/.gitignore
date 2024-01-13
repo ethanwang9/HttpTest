@@ -1,0 +1,7 @@
+.idea/
+.vscode/
+temp/
+template/
+log/
+go.sum
+db.*
