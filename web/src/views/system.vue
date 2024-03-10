@@ -102,13 +102,15 @@ const updateLoading = ref<boolean>(false)
 
 // 是否显示错误
 const isShowUpdateError = computed(() => {
-  return dataUpdate.msg != undefined && dataUpdate.msg.length !== 0 && dataUpdate.status >= 1 && dataUpdate.status <= 5
+  return dataUpdate.msg != undefined && dataUpdate.msg.length !== 0 && dataUpdate.status >= 1 && dataUpdate.status <= 4
 })
 
 // 获取更新信息
 const getUpdate = async () => {
   updateLoading.value = false
-  await SetPanelSystemUpdate("1.0.0", "1.0.0").then((data: SystemUpdate) => {
+  let v = import.meta.env.VITE_VERSION
+  let h = import.meta.env.VITE_HASH
+  await SetPanelSystemUpdate(v, h).then((data: SystemUpdate) => {
     for (let key in data) {
       if (key === "version") {
         for (let key2 in data[key]) {
@@ -174,7 +176,8 @@ getUpdate()
               </el-button>
             </div>
           </el-tab-pane>
-          <el-tab-pane label="版本更新" name="version" style="overflow-y: auto;height: 460px;" v-loading="!updateLoading">
+          <el-tab-pane label="版本更新" name="version" style="overflow-y: auto;height: 460px;"
+                       v-loading="!updateLoading">
             <el-alert
                 effect="dark"
                 title="系统警告"
@@ -192,7 +195,7 @@ getUpdate()
               </div>
               <div class="version-right">
                 <h4>最新版本号 {{ dataUpdateVersion.release }}</h4>
-                <p v-if="dataUpdate.status >= 6 && dataUpdate.status <= 8">{{ dataUpdate.msg }}</p>
+                <p v-if="dataUpdate.status == 5">{{ dataUpdate.msg }}</p>
                 <p v-else>当前为最新版本，无需更新</p>
               </div>
               <div class="version-bottom">

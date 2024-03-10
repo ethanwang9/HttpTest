@@ -7,6 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 // SetSystemProxy 创建/更新 - 系统代理
@@ -90,9 +92,6 @@ func GetSystemUpdate(ctx *gin.Context) {
 	}
 
 	// 安全校验
-	//versionRelease := strings.Split(result[0].Version, ".")
-	//versionClient := strings.Split(v, ".")
-	//versionServer := strings.Split(global.SysVersion, ".")
 	// 1. 校验客户端版本号与服务端版本号是否一致
 	if v != global.SysVersion {
 		ctx.JSON(http.StatusOK, global.MsgBack{
@@ -112,12 +111,104 @@ func GetSystemUpdate(ctx *gin.Context) {
 		return
 	}
 	// 2. 校验软件版本号
-	//fmt.Println(versionRelease, versionClient, versionServer)
-
-	// 3. 校验 client hash
-	// 4. 校验 server hash
-
+	versionRelease := strings.Split(result[0].Version, ".")
+	versionServer := strings.Split(global.SysVersion, ".")
+	understandVersion := false
+	for i := 0; i < 3; i++ {
+		r, _ := strconv.Atoi(versionRelease[i])
+		s, _ := strconv.Atoi(versionServer[i])
+		if s > r {
+			understandVersion = true
+			break
+		} else if s == r {
+			continue
+		} else if s < r {
+			break
+		}
+	}
+	if understandVersion {
+		ctx.JSON(http.StatusOK, global.MsgBack{
+			Code:    global.StatusSuccess,
+			Message: "success",
+			Data: gin.H{
+				"status": global.UpdateStatusVersionNotFound,
+				"msg":    global.UpdateStatusVersionNotFoundMsg,
+				"log":    result[0].Log,
+				"version": gin.H{
+					"release": result[0].Version,
+					"client":  v,
+					"server":  global.SysVersion,
+				},
+			},
+		})
+		return
+	}
+	// 3. 校验 hash
+	if global.SysVersion == result[0].Version {
+		// 校验 server hash
+		if result[0].Hash.Server != global.SysHash {
+			ctx.JSON(http.StatusOK, global.MsgBack{
+				Code:    global.StatusSuccess,
+				Message: "success",
+				Data: gin.H{
+					"status": global.UpdateStatusHashServerNotTrue,
+					"msg":    global.UpdateStatusHashServerNotTrueMsg,
+					"log":    result[0].Log,
+					"version": gin.H{
+						"release": result[0].Version,
+						"client":  v,
+						"server":  global.SysVersion,
+					},
+				},
+			})
+			return
+		}
+		// 校验 client hash
+		if result[0].Hash.Client != h {
+			ctx.JSON(http.StatusOK, global.MsgBack{
+				Code:    global.StatusSuccess,
+				Message: "success",
+				Data: gin.H{
+					"status": global.UpdateStatusHashClientNotTrue,
+					"msg":    global.UpdateStatusHashClientNotTrueMsg,
+					"log":    result[0].Log,
+					"version": gin.H{
+						"release": result[0].Version,
+						"client":  v,
+						"server":  global.SysVersion,
+					},
+				},
+			})
+			return
+		}
+	}
 	// 更新校验
+	hasUpdate := false
+	for i := 0; i < 3; i++ {
+		r, _ := strconv.Atoi(versionRelease[i])
+		s, _ := strconv.Atoi(versionServer[i])
+		if r > s {
+			hasUpdate = true
+			break
+		}
+	}
+	if hasUpdate {
+		ctx.JSON(http.StatusOK, global.MsgBack{
+			Code:    global.StatusSuccess,
+			Message: "success",
+			Data: gin.H{
+				"status": global.UpdateStatusFoundNewVersion,
+				"msg":    global.UpdateStatusFoundNewVersionMsg,
+				"log":    result[0].Log,
+				"version": gin.H{
+					"release": result[0].Version,
+					"client":  v,
+					"server":  global.SysVersion,
+				},
+			},
+		})
+		return
+	}
 
 	// 返回数据
 	ctx.JSON(http.StatusOK, global.MsgBack{
